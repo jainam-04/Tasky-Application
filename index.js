@@ -5,19 +5,19 @@ const state = {
 const taskContent = document.querySelector(".task__contents");
 const taskModal = document.querySelector(".task__modal__body");
 const htmlTaskContent = ({ id, title, type, description, url }) => `
-      <div class='col-md-6 col-lg-3 my-3' id=${id}>
+      <div class='col-md-6 col-lg-3 my-3' id=${id} key=${id}>
             <div class='card shadow-sm task__card'>
                   <div class='card-header d-flex justify-content-end task__card__header'>
                         <button type='button' class='btn btn-outline-primary m-1' name=${id}>
                               <i class='fas fa-pencil-alt' name=${id}></i>
                         </button>
-                        <button type='button' class='btn btn-outline-danger m-1' name=${id}>
+                        <button type='button' class='btn btn-outline-danger m-1' name=${id} onclick='deleteTask()'>
                               <i class='fas fa-trash-alt' name=${id}></i>
                         </button>
                   </div>
                   <div class='card-body'>
-                        ${url &&
-      `<img width='100%' src=${url} alt='Card Image' class='card-img-top mb-3 rounded-lg' />`
+                  ${url ?
+            `<img width='100%' src=${url} alt='Card Image' class='card-img-top mb-3 rounded-lg' />` : `<img width='100%' src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW1mqRHkuD5vYG2jM2IrlxRi_T4ryPpoif0P9IGPNwYmQdD9FUibxGPbNUNAU1r1tSjwM&usqp=CAU' alt='Card Image' class='card-img-top mb-3 rounded-lg'/>`
       }
                         <h4 class='card-title task__card__title'>${title}</h4>
                         <p class='task__card__description trim-3-lines text-muted'>${description}</p>
@@ -26,7 +26,7 @@ const htmlTaskContent = ({ id, title, type, description, url }) => `
                         </div>
                   </div>
                   <div class='card-footer'>
-                        <button type='button' class='btn btn-outline-primary float-right' data-bs-toggle="modal" data-bs-target="#showTask">Open Task</button>
+                        <button type='button' class='btn btn-outline-primary float-right' data-bs-toggle="modal" data-bs-target="#showTask" onclick='openTask()' id=${id}>Open Task</button>
                   </div>
             </div>
       </div>
@@ -36,8 +36,8 @@ const htmlModalContent = ({ id, title, description, url }) => {
       const date = new Date(parseInt(id));
       return `
             <div id=${id}>
-                  ${url &&
-            `<img width='100%' src=${url} alt='Card Image' class='img-fluid place__holder__image mb-3' />`
+            ${url ?
+                  `<img width='100%' src=${url} alt='Card Image' class='card-img-top mb-3 rounded-lg' />` : `<img width='100%' src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW1mqRHkuD5vYG2jM2IrlxRi_T4ryPpoif0P9IGPNwYmQdD9FUibxGPbNUNAU1r1tSjwM&usqp=CAU' alt='Card Image' class='card-img-top mb-3 rounded-lg'/>`
             }
                   <strong class='text-muted text-sm'>Created on: ${date.toDateString()}</strong>
                   <h2 class='my-3'>${title}</h2>
@@ -59,10 +59,10 @@ const loadInitialData = () => {
       var localStorageCopy = JSON.parse(localStorage.task);
       if (localStorageCopy) {
             state.taskList = localStorageCopy.tasks;
-            state.taskList.map((cardDate) => {
-                  taskContent.insertAdjacentHTML("beforeend", htmlTaskContent(cardDate));
-            });
       }
+      state.taskList.map((cardDate) => {
+            taskContent.insertAdjacentHTML("beforeend", htmlTaskContent(cardDate));
+      });
 }
 
 const handleSubmit = (event) => {
@@ -79,4 +79,30 @@ const handleSubmit = (event) => {
       taskContent.insertAdjacentHTML("beforeend", htmlTaskContent({ ...input, id }));
       state.taskList.push({ ...input, id });
       updateLocalStorage();
+}
+
+const openTask = (event) => {
+      if (!event) {
+            event = window.event;
+      }
+      const getTask = state.taskList.find(({ id }) => id === event.target.id);
+      taskModal.innerHTML = htmlModalContent(getTask);
+}
+
+const deleteTask = (event) => {
+      if (!event) {
+            event = window.event;
+      }
+      const targetId = event.target.getAttribute("name");
+      const type = event.target.tagName;
+      const removeTask = state.taskList.filter(({ id }) => id !== targetId);
+      updateLocalStorage();
+      if (type === "BUTTON") {
+            return event.target.parentNode.parentNode.parentNode.parentNode.removeChild(
+                  event.target.parentNode.parentNode.parentNode
+            );
+      }
+      return event.target.parentNode.parentNode.parentNode.parentNode.parentNode.removeChild(
+            event.target.parentNode.parentNode.parentNode.parentNode
+      );
 }

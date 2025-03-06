@@ -8,7 +8,7 @@ const htmlTaskContent = ({ id, title, type, description, url }) => `
       <div class='col-md-6 col-lg-3 my-3' id=${id} key=${id}>
             <div class='card shadow-sm task__card'>
                   <div class='card-header d-flex justify-content-end task__card__header'>
-                        <button type='button' class='btn btn-outline-primary m-1' name=${id}>
+                        <button type='button' class='btn btn-outline-primary m-1' name=${id} onclick='editTask()'>
                               <i class='fas fa-pencil-alt' name=${id}></i>
                         </button>
                         <button type='button' class='btn btn-outline-danger m-1' name=${id} onclick='deleteTask()'>
@@ -96,6 +96,7 @@ const deleteTask = (event) => {
       const targetId = event.target.getAttribute("name");
       const type = event.target.tagName;
       const removeTask = state.taskList.filter(({ id }) => id !== targetId);
+      state.taskList = removeTask;
       updateLocalStorage();
       if (type === "BUTTON") {
             return event.target.parentNode.parentNode.parentNode.parentNode.removeChild(
@@ -105,4 +106,80 @@ const deleteTask = (event) => {
       return event.target.parentNode.parentNode.parentNode.parentNode.parentNode.removeChild(
             event.target.parentNode.parentNode.parentNode.parentNode
       );
+}
+
+const editTask = (event) => {
+      if (!event) {
+            event = window.event;
+      }
+      const targetId = event.target.id;
+      const type = event.target.tagName;
+      let parentNode;
+      let taskTitle;
+      let taskDescription;
+      let taskType;
+      let submitButton;
+      if (type === "BUTTON") {
+            parentNode = event.target.parentNode.parentNode;
+      }
+      else {
+            parentNode = event.target.parentNode.parentNode.parentNode;
+      }
+      taskTitle = parentNode.childNodes[3].childNodes[3];
+      taskDescription = parentNode.childNodes[3].childNodes[5];
+      taskType = parentNode.childNodes[3].childNodes[7].childNodes[1];
+      submitButton = parentNode.childNodes[5].childNodes[1];
+      taskTitle.setAttribute("contenteditable", "true");
+      taskDescription.setAttribute("contenteditable", "true");
+      taskType.setAttribute("contenteditable", "true");
+      submitButton.setAttribute("onclick", "saveEdit()");
+      submitButton.removeAttribute("data-bs-toggle");
+      submitButton.removeAttribute("data-bs-target");
+      submitButton.innerHTML = "Save Changes";
+}
+
+const saveEdit = (event) => {
+      if (!event) {
+            event = window.event;
+      }
+      const targetId = event.target.id;
+      const parentNode = event.target.parentNode.parentNode;
+      const taskTitle = parentNode.childNodes[3].childNodes[3];
+      const taskDescription = parentNode.childNodes[3].childNodes[5];
+      const taskType = parentNode.childNodes[3].childNodes[7].childNodes[1];
+      const submitButton = parentNode.childNodes[5].childNodes[1];
+      const updateData = {
+            taskTitle: taskTitle.innerHTML,
+            taskDescription: taskDescription.innerHTML,
+            taskType: taskType.innerHTML
+      };
+      let stateCopy = state.taskList;
+      stateCopy = stateCopy.map((task) => task.id === targetId ? {
+            id: task.id,
+            title: updateData.taskTitle,
+            description: updateData.taskDescription,
+            type: updateData.taskType
+      } : task);
+      state.taskList = stateCopy;
+      updateLocalStorage();
+      taskTitle.setAttribute("contenteditable", "false");
+      taskDescription.setAttribute("contenteditable", "false");
+      taskType.setAttribute("contenteditable", "false");
+      submitButton.setAttribute("onclick", "openTask()");
+      submitButton.setAttribute("data-bs-toggle", "modal");
+      submitButton.setAttribute("data-bs-target", "#showTask");
+      submitButton.innerHTML = "Open Task";
+}
+
+const searchTask = (event) => {
+      if (!event) {
+            event = window.event;
+      }
+      while (taskContent.firstChild) {
+            taskContent.removeChild(taskContent.firstChild);
+      }
+      const resultData = state.taskList.filter(({ title }) => {
+            title.includes(editTask.target.value);
+      })
+      console.log(resultData);
 }

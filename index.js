@@ -178,8 +178,11 @@ const searchTask = (event) => {
       while (taskContent.firstChild) {
             taskContent.removeChild(taskContent.firstChild);
       }
-      const resultData = state.taskList.filter(({ title }) => {
-            title.includes(editTask.target.value);
-      })
+      const resultData = state.taskList.filter(({ title }) =>
+            title.toLowerCase().includes(event.target.value.toLowerCase())
+      )
       console.log(resultData);
+      resultData.map((cardData) =>
+            taskContent.insertAdjacentHTML("beforeend", htmlTaskContent(cardData))
+      );
 }
